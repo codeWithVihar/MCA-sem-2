@@ -1,0 +1,76 @@
+/* Layout Container */
+.layout-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #FBFBFB;
+  font-family: Arial, sans-serif;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background-color: #C4D9FF;
+  padding: 25px 20px;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+}
+
+.logo {
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+
+/* Navigation Links */
+.nav-link {
+  display: block;
+  padding: 12px;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: #333;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background-color: #C5BAFF;
+}
+
+.nav-link.active {
+  background-color: #C5BAFF;
+  font-weight: bold;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 30px;
+}
+
+/* Top Bar */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* Logout Button */
+.logout-btn {
+  background-color: #C5BAFF;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #b0a3ff;
+}
+
+/* Page Content */
+.page-content {
+  background-color: #E8F9FF;
+  padding: 25px;
+  border-radius: 12px;
+  min-height: 80vh;
+}
