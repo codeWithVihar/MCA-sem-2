@@ -110,28 +110,29 @@ exports.getSaleById = async (req, res) => {
 /* ================= SALES SUMMARY ================= */
 exports.getSalesSummary = async (req, res) => {
   try {
-    const sales = await Sale.find();
+    const result = await Sale.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: "$grandTotal" },
+          totalGST: { $sum: "$totalGSTAmount" },
+          totalSales: { $sum: 1 }
+        }
+      }
+    ]);
 
-    const totalRevenue = sales.reduce(
-      (sum, s) => sum + s.grandTotal,
-      0
-    );
+    const summary = result[0] || {
+      totalRevenue: 0,
+      totalGST: 0,
+      totalSales: 0
+    };
 
-    const totalGST = sales.reduce(
-      (sum, s) => sum + s.totalGSTAmount,
-      0
-    );
+    res.json(summary);
 
-    res.json({
-      totalRevenue,
-      totalGST,
-      totalSales: sales.length,
-    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 /* ================= MONTHLY SALES TREND ================= */
 exports.getMonthlySales = async (req, res) => {
   try {

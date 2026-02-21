@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
 
     password: { type: String, required: true },
+    
 
     role: {
       type: String,
@@ -19,6 +20,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    otp: String,
+    otpExpires: Date,
   },
   { timestamps: true }
 );
