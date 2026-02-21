@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
 import CountUp from "react-countup";
+import { motion } from "framer-motion";
+
 import {
   AreaChart,
   Area,
@@ -31,12 +33,11 @@ const Dashboard = () => {
         const monthlyRes = await API.get("/sales/monthly");
 
         setSummary({
-          totalRevenue: salesRes.data.totalRevenue || 0,
-          totalSales: salesRes.data.totalSales || 0,
-          totalProducts: productRes.data.count || 0,
-          lowStock: lowStockRes.data.count || 0,
+         totalRevenue: salesRes.data?.totalRevenue ?? 0,
+         totalSales: salesRes.data?.totalSales ?? 0,
+         totalProducts: productRes.data?.count ?? 0,
+         lowStock: lowStockRes.data?.count ?? 0,
         });
-
  
 
       const formatted = monthlyRes.data.map((item) => ({
@@ -64,6 +65,11 @@ const Dashboard = () => {
     "bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition duration-300";
 
   return (
+  <motion.div
+  initial={{ opacity: 0, scale: 0.98 }}
+  animate={{ opacity: 1, scale: 1 }}
+  transition={{ duration: 0.4 }}
+>
     <Layout>
       <div className="space-y-8">
 
@@ -118,8 +124,8 @@ const Dashboard = () => {
 
       <defs>
         <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#6366F1" stopOpacity={0.6} />
-          <stop offset="95%" stopColor="#6366F1" stopOpacity={0.05} />
+          <stop offset="5%" stopColor="#f1e863" stopOpacity={0.6} />
+          <stop offset="95%" stopColor="#f1d763" stopOpacity={0.05} />
         </linearGradient>
       </defs>
 
@@ -149,7 +155,7 @@ const Dashboard = () => {
       <Area
         type="monotone"
         dataKey="revenue"
-        stroke="#6366F1"
+        stroke="#f1d963"
         strokeWidth={3}
         fill="url(#revenueGradient)"
         activeDot={{ r: 6 }}
@@ -163,6 +169,7 @@ const Dashboard = () => {
 
       </div>
     </Layout>
+  </motion.div>
   );
 };
 
