@@ -92,7 +92,7 @@ const StaffManage = () => {
             onChange={handleChange}
           >
             <option value="Staff">Staff</option>
-            <option value="Manager">Manager</option>
+            {/* <option value="Manager">Manager</option> */}
             <option value="Admin">Admin</option>
           </select>
 
