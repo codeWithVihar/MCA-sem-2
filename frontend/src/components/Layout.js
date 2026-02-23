@@ -58,6 +58,11 @@ const Layout = ({ children }) => {
               </NavLink>
             </>
           )}
+          {(role === "Admin" || role === "Manager") && (
+            <NavLink to="/staff" className={navStyle}>
+              Staff Manage
+            </NavLink>
+          )}
         </nav>
       </div>
 
