@@ -11,12 +11,13 @@ const StaffManage = () => {
     role: "Staff"
   });
 
-  const loadUsers = () => {
-    API.get("/users")
-      .then(res => setUsers(res.data))
-      .catch(() => alert("Failed to load users"));
-  };
+ const loadUsers = () => {
 
+  API.get("/users")
+    .then(res => setUsers(res.data.data))
+    .catch(() => alert("Failed to load users"));
+
+};
   useEffect(() => {
     loadUsers();
   }, []);

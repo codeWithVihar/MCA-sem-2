@@ -41,10 +41,10 @@ const productSchema = new mongoose.Schema({
 
 
   /* 4. Purchase & Supplier Information */
-  supplier: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Supplier"
-  },
+supplier: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Supplier"
+},
   purchasePrice: Number,
   lastPurchaseDate: Date,
   leadTimeDays: Number,

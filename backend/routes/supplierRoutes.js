@@ -1,9 +1,21 @@
 const express = require("express");
 const router = express.Router();
 
-// test route
-router.get("/", (req, res) => {
-  res.json({ message: "Supplier route working" });
-});
+const {
+  createSupplier,
+  getSuppliers,
+  updateSupplier,
+  deleteSupplier
+} = require("../controllers/supplierController");
+
+const { protect, authorize } = require("../middleware/authMiddleware");
+
+router.post("/", protect, authorize("Admin"), createSupplier);
+
+router.get("/", protect, getSuppliers);
+
+router.put("/:id", protect, authorize("Admin"), updateSupplier);
+
+router.delete("/:id", protect, authorize("Admin"), deleteSupplier);
 
 module.exports = router;

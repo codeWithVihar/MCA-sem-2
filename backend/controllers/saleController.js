@@ -1,16 +1,30 @@
 const Product = require("../models/Product");
 const Sale = require("../models/Sale");
 const logAudit = require("../utils/auditLogger");
-
+const sendLowStockEmail = require("../utils/emailService");
 /* ================= HELPER ================= */
-const updateStockStatus = (product) => {
+const updateStockStatus = async (product) => {
+
   if (product.currentStock === 0) {
+
     product.stockStatus = "OUT_OF_STOCK";
-  } else if (product.currentStock <= product.minStockLevel) {
+
+    await sendLowStockEmail(product);
+
+  } 
+  else if (product.currentStock <= product.minStockLevel) {
+
     product.stockStatus = "LOW_STOCK";
-  } else {
+
+    await sendLowStockEmail(product);
+
+  } 
+  else {
+
     product.stockStatus = "IN_STOCK";
+
   }
+
 };
 
 /* ================= CREATE MULTI-ITEM SALE ================= */
@@ -97,16 +111,42 @@ exports.createSale = async (req, res) => {
 
 /* ================= GET SALE BY ID ================= */
 exports.getSaleById = async (req, res) => {
+
   try {
-    const sale = await Sale.findById(req.params.id)
-      .populate("items.product", "productName sellingPrice");
+
+    const id = req.params.id;
+
+    let sale;
+
+    if (id.startsWith("INV-")) {
+
+      sale = await Sale.findOne({ invoiceNumber: id })
+        .populate("items.product", "productName");
+
+    } else {
+
+      sale = await Sale.findById(id)
+        .populate("items.product", "productName");
+
+    }
+
+    if (!sale) {
+      return res.status(404).json({
+        message: "Invoice not found"
+      });
+    }
 
     res.json(sale);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
+  } catch (error) {
+
+    res.status(500).json({
+      message: "Server error while loading invoice"
+    });
+
+  }
+
+};
 /* ================= SALES SUMMARY ================= */
 exports.getSalesSummary = async (req, res) => {
   try {

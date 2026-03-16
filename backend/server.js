@@ -3,6 +3,10 @@ const dotenv = require("dotenv");
 const cors = require("cors");          // ✅ ONLY ONCE
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
+const supplierRoutes = require("./routes/supplierRoutes");
+const salesReturnRoutes = require("./routes/salesReturnRoutes");
+const purchaseRoutes = require("./routes/purchaseRoutes");
+
 
 dotenv.config();
 connectDB();
@@ -22,7 +26,13 @@ app.use("/api/stock", require("./routes/stockRoutes"));
 app.use("/api/sales", require("./routes/saleRoutes"));
 app.use("/api/users", userRoutes);
 app.use("/api/audit", require("./routes/auditRoutes"));
+app.use("/api/suppliers", supplierRoutes);
+app.use("/api/sales-return", salesReturnRoutes);
+app.use("/api/purchases", purchaseRoutes);
 
+const analyticsRoutes = require("./routes/analyticsRoutes");
+
+app.use("/api/analytics", analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
