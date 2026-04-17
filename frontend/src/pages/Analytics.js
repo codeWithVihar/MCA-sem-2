@@ -5,8 +5,6 @@ import Layout from "../components/Layout";
 import {
   AreaChart,
   Area,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -19,57 +17,55 @@ import {
 
 const Analytics = () => {
 
-  const [salesPurchase, setSalesPurchase] = useState([]);
-  const [monthly, setMonthly] = useState([]);
-  const [topProducts, setTopProducts] = useState([]);
+  const [monthlyData, setMonthlyData] = useState([]);
   const [movement, setMovement] = useState(null);
   const [reorder, setReorder] = useState([]);
   const [deadStock, setDeadStock] = useState([]);
   const [profit, setProfit] = useState({});
   const [inventoryValue, setInventoryValue] = useState(0);
-  const [turnover, setTurnover] = useState(0);
+  const [topProducts, setTopProducts] = useState([]);
+
+  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const year = new Date().getFullYear();
+
+  /* ================= FETCH ================= */
 
   useEffect(() => {
 
-    API.get("/analytics/sales-vs-purchase").then(res =>
-      setSalesPurchase(res.data)
-    );
+    API.get(`/analytics/sales-vs-purchase-month?month=${month}&year=${year}`)
+      .then(res => setMonthlyData(res.data));
 
-    API.get("/sales/monthly").then(res =>
-      setMonthly(res.data)
-    );
+    API.get("/sales/movement").then(res => setMovement(res.data));
+    API.get("/analytics/reorder-ml").then(res => setReorder(res.data));
+    API.get("/analytics/dead-stock").then(res => setDeadStock(res.data.products || []));
+    API.get("/analytics/profit").then(res => setProfit(res.data));
+    API.get("/analytics/inventory-value").then(res => setInventoryValue(res.data.inventoryValue));
 
-    API.get("/sales/top-products").then(res =>
-      setTopProducts(res.data)
-    );
+    API.get(`/sales/top-products?month=${month}&year=${year}`)
+      .then(res => setTopProducts(res.data));
 
-    API.get("/sales/movement").then(res =>
-      setMovement(res.data)
-    );
-
-    API.get("/analytics/reorder-ml").then(res =>
-      setReorder(res.data)
-    );
-
-    API.get("/analytics/dead-stock").then(res =>
-      setDeadStock(res.data.products)
-    );
-
-    API.get("/analytics/profit").then(res =>
-      setProfit(res.data)
-    );
-
-    API.get("/analytics/inventory-value").then(res =>
-      setInventoryValue(res.data.inventoryValue)
-    );
-
-    API.get("/analytics/inventory-turnover").then(res =>
-      setTurnover(res.data.turnoverRatio)
-    );
-
-  }, []);
+  }, [month]);
 
   if (!movement) return <Layout>Loading...</Layout>;
+
+  /* ================= HELPERS ================= */
+
+  const formatCurrency = (num) =>
+    `₹${Number(num || 0).toLocaleString("en-IN", {
+      minimumFractionDigits: 2
+    })}`;
+
+  const getPriority = (stock, min = 5) => {
+    if (stock === 0) return "HIGH";
+    if (stock <= min) return "MEDIUM";
+    return "LOW";
+  };
+
+  /* ================= CALCULATIONS ================= */
+
+  const totalSales = monthlyData.reduce((sum, d) => sum + d.sales, 0);
+  const totalPurchase = monthlyData.reduce((sum, d) => sum + d.purchase, 0);
+  const totalProfit = totalSales - totalPurchase;
 
   const movementData = [
     { name: "Fast", value: movement.fastMoving },
@@ -79,281 +75,162 @@ const Analytics = () => {
   const COLORS = ["#6366F1", "#EF4444"];
 
   return (
-
     <Layout>
 
       {/* HEADER */}
+      <div className="mb-8 flex justify-between items-center">
 
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold">
-          Analytics Dashboard
-        </h1>
-        <p className="text-gray-500">
-          Business insights for your inventory
-        </p>
+        <div>
+          <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+          <p className="text-gray-500">Monthly insights</p>
+        </div>
+
+        {/* MONTH SELECT */}
+        <select
+          value={month}
+          onChange={(e) => setMonth(Number(e.target.value))}
+          className="px-4 py-2 border rounded-lg"
+        >
+          {[...Array(12)].map((_, i) => (
+            <option key={i} value={i + 1}>
+              {new Date(0, i).toLocaleString("default", { month: "long" })}
+            </option>
+          ))}
+        </select>
+
       </div>
 
-      {/* KPI CARDS */}
-
+      {/* KPI */}
       <div className="grid grid-cols-4 gap-6 mb-10">
 
-        <div className="bg-white p-6 rounded-xl shadow">
-          <p className="text-gray-400">Revenue</p>
-          <h2 className="text-2xl font-bold">
-            ₹{profit.salesTotal || 0}
-          </h2>
+        <div className="bg-gradient-to-r from-indigo-500 to-indigo-400 text-white p-6 rounded-xl shadow">
+          <p className="text-sm">Sales</p>
+          <h2 className="text-2xl font-bold">{formatCurrency(totalSales)}</h2>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow">
-          <p className="text-gray-400">Profit</p>
-          <h2 className="text-2xl font-bold text-green-600">
-            ₹{profit.profit || 0}
-          </h2>
+        <div className="bg-gradient-to-r from-yellow-500 to-yellow-400 text-white p-6 rounded-xl shadow">
+          <p className="text-sm">Purchase</p>
+          <h2 className="text-2xl font-bold">{formatCurrency(totalPurchase)}</h2>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow">
-          <p className="text-gray-400">Inventory Value</p>
-          <h2 className="text-2xl font-bold">
-            ₹{inventoryValue}
-          </h2>
+        <div className="bg-gradient-to-r from-green-500 to-green-400 text-white p-6 rounded-xl shadow">
+          <p className="text-sm">Profit</p>
+          <h2 className="text-2xl font-bold">{formatCurrency(totalProfit)}</h2>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow">
-          <p className="text-gray-400">Turnover</p>
-          <h2 className="text-2xl font-bold">
-            {turnover}x
-          </h2>
+        <div className="bg-gradient-to-r from-purple-500 to-purple-400 text-white p-6 rounded-xl shadow">
+          <p className="text-sm">Inventory</p>
+          <h2 className="text-2xl font-bold">{formatCurrency(inventoryValue)}</h2>
         </div>
 
       </div>
 
-      {/* SALES VS PURCHASE */}
-
+      {/* GRAPH */}
       <div className="bg-white p-6 rounded-xl shadow mb-10">
 
         <h3 className="font-semibold mb-4">
-          Sales vs Purchase
+          Daily Sales vs Purchase
         </h3>
 
         <ResponsiveContainer width="100%" height={300}>
-
-          <AreaChart data={salesPurchase}>
-
+          <AreaChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3"/>
-
-            <XAxis dataKey="month"/>
-
+            <XAxis dataKey="day"/>
             <YAxis/>
-
             <Tooltip/>
 
-            <Area
-              type="monotone"
-              dataKey="sales"
-              stroke="#6366F1"
-              fill="#6366F122"
-            />
-
-            <Area
-              type="monotone"
-              dataKey="purchase"
-              stroke="#F59E0B"
-              fill="#F59E0B22"
-            />
-
+            <Area type="monotone" dataKey="sales" stroke="#6366F1" fill="#6366F1" fillOpacity={0.2}/>
+            <Area type="monotone" dataKey="purchase" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.2}/>
           </AreaChart>
-
         </ResponsiveContainer>
 
       </div>
 
-      {/* REVENUE TREND */}
-
-      <div className="bg-white p-6 rounded-xl shadow mb-10">
-
-        <h3 className="font-semibold mb-4">
-          Revenue Trend
-        </h3>
-
-        <ResponsiveContainer width="100%" height={300}>
-
-          <LineChart data={monthly}>
-
-            <CartesianGrid strokeDasharray="3 3"/>
-
-            <XAxis dataKey="_id"/>
-
-            <YAxis/>
-
-            <Tooltip/>
-
-            <Line
-              type="monotone"
-              dataKey="totalRevenue"
-              stroke="#10B981"
-              strokeWidth={3}
-            />
-
-          </LineChart>
-
-        </ResponsiveContainer>
-
-      </div>
-
-      {/* PRODUCT MOVEMENT */}
-
+      {/* MOVEMENT + TOP */}
       <div className="grid grid-cols-2 gap-8 mb-10">
 
-        <div className="bg-white p-6 rounded-xl shadow">
+        {/* MOVEMENT */}
+        {/* <div className="bg-white p-6 rounded-xl shadow">
 
-          <h3 className="font-semibold mb-4">
-            Product Movement
-          </h3>
+          <h3 className="mb-4 font-semibold">Product Movement</h3>
 
           <ResponsiveContainer width="100%" height={300}>
-
             <PieChart>
-
-              <Pie
-                data={movementData}
-                dataKey="value"
-                innerRadius={70}
-                outerRadius={100}
-                label
-              >
-
+              <Pie data={movementData} dataKey="value" innerRadius={70} outerRadius={100}>
                 {movementData.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index]}/>
+                  <Cell key={index} fill={COLORS[index]} />
                 ))}
-
               </Pie>
-
             </PieChart>
-
           </ResponsiveContainer>
 
-        </div>
+        </div> */}
 
         {/* TOP PRODUCTS */}
-
         <div className="bg-white p-6 rounded-xl shadow">
 
-          <h3 className="font-semibold mb-4">
-            Top Products
-          </h3>
+          <h3 className="mb-4 font-semibold">Top Products 🏆</h3>
 
-          <ul>
-
-            {topProducts.map((p, index) => (
-
-              <li
-                key={index}
-                className="flex justify-between py-2 border-b"
-              >
-
-                <span>{p.productName}</span>
-
-                <span className="font-semibold">
-                  {p.totalQuantity}
-                </span>
-
-              </li>
-
-            ))}
-
-          </ul>
+          {topProducts.slice(0, 3).map((p, i) => (
+            <div key={i} className="flex justify-between p-3 hover:bg-indigo-50 rounded-lg">
+              <span>{i + 1}. {p.productName}</span>
+              <span className="font-bold text-indigo-600">{p.totalQuantity}</span>
+            </div>
+          ))}
 
         </div>
-
-      </div>
-
-      {/* DEAD STOCK */}
-
-      <div className="bg-white p-6 rounded-xl shadow mb-10">
-
-        <h3 className="font-semibold mb-4 text-red-500">
-          Dead Stock
-        </h3>
-
-        <table className="w-full">
-
-          <thead className="bg-gray-100">
-
-            <tr>
-              <th className="p-3 text-left">Product</th>
-              <th className="p-3 text-left">Stock</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            {deadStock.map((p,index)=>(
-
-              <tr key={index} className="border-b">
-
-                <td className="p-3">{p.productName}</td>
-
-                <td className="p-3">{p.currentStock}</td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
 
       </div>
 
       {/* REORDER */}
+      <div className="bg-white p-6 rounded-xl shadow mb-10">
 
+        <h3 className="mb-4 font-semibold">Reorder Suggestions</h3>
+
+        {reorder.map((item, i) => {
+
+          const priority = getPriority(item.currentStock, item.minStockLevel);
+
+          return (
+            <div key={i} className="flex justify-between p-3 hover:bg-indigo-50 rounded-lg">
+
+              <div>
+                <p>{item.productName}</p>
+                <p className="text-xs text-gray-400">Stock: {item.currentStock}</p>
+              </div>
+
+              <div>
+                <p className="text-indigo-600 font-bold">+{item.suggestedOrder}</p>
+                <span className="text-xs">{priority}</span>
+              </div>
+
+            </div>
+          );
+
+        })}
+
+      </div>
+
+      {/* DEAD STOCK */}
       <div className="bg-white p-6 rounded-xl shadow">
 
-        <h3 className="font-semibold mb-4">
-          AI Reorder Suggestions
-        </h3>
+        <h3 className="mb-4 text-red-500 font-semibold">Dead Stock</h3>
 
-        <table className="w-full">
+        {deadStock.length === 0 && (
+          <p className="text-gray-400">No dead stock 🎉</p>
+        )}
 
-          <thead className="bg-gray-100">
-
-            <tr>
-              <th className="p-3">Product</th>
-              <th className="p-3">Stock</th>
-              <th className="p-3">Suggested</th>
-            </tr>
-
-          </thead>
-
-          <tbody>
-
-            {reorder.map((item,index)=>(
-
-              <tr key={index} className="border-b">
-
-                <td className="p-3">{item.productName}</td>
-
-                <td className="p-3">{item.currentStock}</td>
-
-                <td className="p-3 font-semibold text-indigo-600">
-                  {item.suggestedOrder}
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
+        {deadStock.map((p, i) => (
+          <div key={i} className="flex justify-between p-3 hover:bg-red-50 rounded-lg">
+            <span>{p.productName}</span>
+            <span className="text-red-600">{p.currentStock}</span>
+          </div>
+        ))}
 
       </div>
 
     </Layout>
-
   );
-
 };
 
 export default Analytics;

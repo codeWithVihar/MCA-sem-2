@@ -76,6 +76,9 @@ supplier: {
   description: String,
   usageInstructions: String,
   safetyGuidelines: String,
+  
+  image: String,
+
   images: [String],
   manuals: [String],
 

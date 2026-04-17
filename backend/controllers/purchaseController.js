@@ -108,7 +108,7 @@ exports.createPurchase = async (req, res) => {
 
   } catch (error) {
 
-    console.log("PURCHASE ERROR:", error);
+
 
     res.status(500).json({
       message: error.message

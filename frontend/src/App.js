@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import CreateProduct from "./pages/CrteateProduct";
+import CreateProduct from "./pages/CreateProduct";
 import StockManage from "./pages/StockManage";
 import Sales from "./pages/Sales";
 import Invoice from "./pages/Invoice";
@@ -14,9 +14,15 @@ import Products from "./pages/Products";
 import EditProduct from "./pages/EditProduct";
 import StaffManage from "./pages/StaffManage";
 import AuditLogs from "./pages/AuditLogs";
-import Purchase from "./pages/Puchase";
+import Purchase from "./pages/Purchase";
 import SalesReturn from "./pages/SalesReturn";
 import Suppliers from "./pages/Suppliers";
+import Customer from "./pages/Customer";
+import Checkout from "./pages/Checkout";
+import CustomerLogin from "./pages/CustomerLogin";
+import CustomerRegister from "./pages/CustomerRegister";
+import OrderSuccess from "./pages/OrderSuccess";
+import CustomerProfile from "./pages/CustomerProfile";
 
 function App() {
   const [auth, setAuth] = useState(!!localStorage.getItem("token"));
@@ -24,8 +30,14 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Login setAuth={setAuth} />} />
-
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login setAuth={setAuth} />} />
+        <Route path="/customer" element={<Customer />} />
+        <Route path="/customer-login" element={<CustomerLogin />} />
+        <Route path="/customer-register" element={<CustomerRegister />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/customer-profile" element={<CustomerProfile />} />
         <Route
           path="/dashboard"
           element={
@@ -110,13 +122,11 @@ function App() {
       <AuditLogs />
     </ProtectedRoute>
   }
-/>
+        />
 
         <Route path="/products" element={<Products />} />
-<Route path="/edit-product/:id" element={<EditProduct />} />
-          
-      </Routes>
-    </BrowserRouter>
+        <Route path="/edit-product/:id" element={<EditProduct />} />
+     </Routes>\n    </BrowserRouter>
   );
 }
 

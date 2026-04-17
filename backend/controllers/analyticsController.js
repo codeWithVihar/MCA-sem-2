@@ -4,37 +4,59 @@ const Product = require("../models/Product");
 
 /* ================= SALES VS PURCHASE ================= */
 
-exports.getSalesVsPurchase = async (req, res) => {
-
+exports.getSalesVsPurchaseByMonth = async (req, res) => {
   try {
+
+    const { month, year } = req.query;
+
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 1);
+
+    /* SALES */
 
     const sales = await Sale.aggregate([
       {
+        $match: {
+          createdAt: { $gte: start, $lt: end }
+        }
+      },
+      {
         $group: {
-          _id: { $month: "$createdAt" },
+          _id: { $dayOfMonth: "$createdAt" },
           sales: { $sum: "$grandTotal" }
         }
       }
     ]);
 
+    /* PURCHASE */
+
     const purchases = await Purchase.aggregate([
       {
+        $match: {
+          createdAt: { $gte: start, $lt: end }
+        }
+      },
+      {
         $group: {
-          _id: { $month: "$createdAt" },
+          _id: { $dayOfMonth: "$createdAt" },
           purchase: { $sum: "$totalAmount" }
         }
       }
     ]);
 
+    /* CREATE FULL MONTH DATA */
+
+    const days = new Date(year, month, 0).getDate();
+
     const result = [];
 
-    for (let i = 1; i <= 12; i++) {
+    for (let i = 1; i <= days; i++) {
 
       const sale = sales.find(s => s._id === i);
       const purchase = purchases.find(p => p._id === i);
 
       result.push({
-        month: i,
+        day: i,
         sales: sale ? sale.sales : 0,
         purchase: purchase ? purchase.purchase : 0
       });
@@ -44,13 +66,9 @@ exports.getSalesVsPurchase = async (req, res) => {
     res.json(result);
 
   } catch (error) {
-
     res.status(500).json({ message: error.message });
-
   }
-
 };
-
 
 /* ================= PROFIT ================= */
 

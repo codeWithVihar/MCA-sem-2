@@ -10,8 +10,11 @@ const Products = () => {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
- const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState([]);
+
   const navigate = useNavigate();
+
+  /* ================= LOAD ================= */
 
   useEffect(() => {
     API.get("/products")
@@ -21,6 +24,8 @@ const Products = () => {
       })
       .catch(() => alert("Failed to load products"));
   }, []);
+
+  /* ================= FILTER ================= */
 
   useEffect(() => {
 
@@ -42,6 +47,8 @@ const Products = () => {
 
   const categories = [...new Set(products.map((p) => p.category))];
 
+  /* ================= BADGE ================= */
+
   const getStockBadge = (status) => {
 
     if (status === "LOW_STOCK")
@@ -53,23 +60,26 @@ const Products = () => {
     return "bg-green-100 text-green-700";
   };
 
-    const openProductDetails = async (product) => {
+  /* ================= VIEW ================= */
 
-  setSelectedProduct(product);
+  const openProductDetails = async (product) => {
 
-  try {
+    setSelectedProduct(product);
 
-    const res = await API.get(`/stock/history/${product._id}`);
+    try {
+      const res = await API.get(`/stock/history/${product._id}`);
+      setHistory(Array.isArray(res.data) ? res.data : res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
 
-    setHistory(Array.isArray(res.data) ? res.data : res.data.data);
+  };
 
-  } catch (error) {
+  /* ================= DATE FORMAT ================= */
 
-    console.log(error);
-
-  }
-
-};
+  const formatDate = (date) => {
+    return new Date(date).toLocaleString(); // 🔥 date + time
+  };
 
   return (
     <Layout>
@@ -78,7 +88,7 @@ const Products = () => {
         Product Management
       </h2>
 
-      {/* Filters */}
+      {/* FILTERS */}
 
       <div className="flex gap-4 mb-6">
 
@@ -106,7 +116,7 @@ const Products = () => {
         </select>
 
         <button
-          onClick={() => navigate("/Add-product")}
+          onClick={() => navigate("/add-product")}
           className="bg-primary px-5 py-3 rounded-lg ml-auto"
         >
           + Create Product
@@ -114,7 +124,7 @@ const Products = () => {
 
       </div>
 
-      {/* Product Table */}
+      {/* TABLE */}
 
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
 
@@ -123,15 +133,14 @@ const Products = () => {
           <thead className="bg-primary">
 
             <tr>
-
               <th className="p-4">Product</th>
               <th className="p-4">Brand</th>
               <th className="p-4">Category</th>
               <th className="p-4">Stock</th>
               <th className="p-4">Price</th>
+              <th className="p-4">Created</th> {/* 🔥 NEW */}
               <th className="p-4">Status</th>
               <th className="p-4">Action</th>
-
             </tr>
 
           </thead>
@@ -146,32 +155,20 @@ const Products = () => {
                   {p.productName}
                 </td>
 
-                <td className="p-4">
-                  {p.brand}
+                <td className="p-4">{p.brand}</td>
+                <td className="p-4">{p.category}</td>
+                <td className="p-4">{p.currentStock}</td>
+                <td className="p-4">₹{p.sellingPrice}</td>
+
+                {/* 🔥 CREATED DATE */}
+                <td className="p-4 text-sm text-gray-500">
+                  {formatDate(p.createdAt)}
                 </td>
 
                 <td className="p-4">
-                  {p.category}
-                </td>
-
-                <td className="p-4">
-                  {p.currentStock}
-                </td>
-
-                <td className="p-4">
-                  ₹{p.sellingPrice}
-                </td>
-
-                <td className="p-4">
-
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm ${getStockBadge(
-                      p.stockStatus
-                    )}`}
-                  >
+                  <span className={`px-3 py-1 rounded-full text-sm ${getStockBadge(p.stockStatus)}`}>
                     {p.stockStatus}
                   </span>
-
                 </td>
 
                 <td className="p-4 space-x-3">
@@ -183,12 +180,12 @@ const Products = () => {
                     View
                   </button>
 
-                  {/* <button
+                  <button
                     onClick={() => navigate(`/edit-product/${p._id}`)}
                     className="text-blue-600 font-medium"
                   >
                     Edit
-                  </button> */}
+                  </button>
 
                 </td>
 
@@ -202,13 +199,13 @@ const Products = () => {
 
       </div>
 
-      {/* Product Details Modal */}
+      {/* ================= MODAL ================= */}
 
       {selectedProduct && (
 
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
 
-          <div className="bg-white p-8 rounded-xl w-[600px] shadow-lg">
+          <div className="bg-white p-8 rounded-xl w-[650px] shadow-lg">
 
             <h3 className="text-xl font-semibold mb-4">
               Product Details
@@ -234,6 +231,8 @@ const Products = () => {
               <p><b>Min Stock:</b> {selectedProduct.minStockLevel}</p>
               <p><b>Status:</b> {selectedProduct.status}</p>
 
+              <p><b>Created:</b> {formatDate(selectedProduct.createdAt)}</p> {/* 🔥 NEW */}
+
               <p><b>Returnable:</b> {selectedProduct.returnable ? "Yes" : "No"}</p>
               <p><b>Damage Prone:</b> {selectedProduct.damageProne ? "Yes" : "No"}</p>
 
@@ -241,45 +240,46 @@ const Products = () => {
               <p><b>Stock Status:</b> {selectedProduct.stockStatus}</p>
 
             </div>
+
+            {/* STOCK HISTORY */}
+
             <h3 className="text-lg font-semibold mt-6 mb-3">
-Stock History
-</h3>
+              Stock History
+            </h3>
 
-<div className="max-h-48 overflow-y-auto border rounded">
+            <div className="max-h-48 overflow-y-auto border rounded">
 
-<table className="w-full text-sm">
+              <table className="w-full text-sm">
 
-<thead className="bg-gray-100">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-2">Date</th>
+                    <th className="p-2">Type</th>
+                    <th className="p-2">Quantity</th>
+                    <th className="p-2">Reason</th>
+                  </tr>
+                </thead>
 
-<tr>
-<th className="p-2">Date</th>
-<th className="p-2">Type</th>
-<th className="p-2">Quantity</th>
-<th className="p-2">Reason</th>
-</tr>
+                <tbody>
 
-</thead>
+                  {Array.isArray(history) &&
+                    history.map((h) => (
+                      <tr key={h._id}>
+                        <td className="p-2">
+                          {formatDate(h.createdAt)}
+                        </td>
+                        <td className="p-2">{h.type}</td>
+                        <td className="p-2">{h.quantity}</td>
+                        <td className="p-2">{h.reason}</td>
+                      </tr>
+                    ))
+                  }
 
-<tbody>
+                </tbody>
 
-{Array.isArray(history) &&
-  history.map((h) => (
-    <tr key={h._id}>
-      <td className="p-2">
-        {new Date(h.createdAt).toLocaleDateString()}
-      </td>
-      <td className="p-2">{h.type}</td>
-      <td className="p-2">{h.quantity}</td>
-      <td className="p-2">{h.reason}</td>
-    </tr>
-  ))
-}
+              </table>
 
-</tbody>
-
-</table>
-
-</div>
+            </div>
 
             <div className="mt-6 text-right">
 

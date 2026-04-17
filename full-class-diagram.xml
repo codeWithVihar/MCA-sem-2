@@ -1,0 +1,158 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Full Class Diagram">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10">
+      <root>
+
+        <!-- USER -->
+        <mxCell id="1" value="User
+-------------------------
+name : String
+email : String
+password : String
+role : String
+createdAt : Date" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="900" y="50" width="220" height="180" as="geometry"/>
+        </mxCell>
+
+        <!-- PRODUCT -->
+        <mxCell id="2" value="Product
+-------------------------
+productName : String
+category : String
+brand : String
+sellingPrice : Number
+purchasePrice : Number
+gstPercent : Number
+currentStock : Number
+minStockLevel : Number
+unit : String
+images : String[]" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="450" y="50" width="240" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- PARTY -->
+        <mxCell id="3" value="Party
+-------------------------
+name : String
+phone : String
+type : String
+gstNumber : String
+openingBalance : Number
+currentBalance : Number" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="50" y="50" width="240" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- PURCHASE -->
+        <mxCell id="4" value="Purchase
+-------------------------
+billNumber : String
+party : ObjectId
+items : Array
+totalAmount : Number
+gstTotal : Number
+discount : Number
+paymentType : String
+createdAt : Date" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="50" y="300" width="260" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- SALE -->
+        <mxCell id="5" value="Sale
+-------------------------
+invoiceNumber : String
+items : Array
+totalSubAmount : Number
+totalGSTAmount : Number
+grandTotal : Number
+createdAt : Date" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="450" y="300" width="260" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- ORDER -->
+        <mxCell id="6" value="Order
+-------------------------
+customerName : String
+customerPhone : String
+customerAddress : String
+items : Array
+totalAmount : Number
+status : String
+sale : ObjectId" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="750" y="300" width="260" height="220" as="geometry"/>
+        </mxCell>
+
+        <!-- PAYMENT -->
+        <mxCell id="7" value="Payment
+-------------------------
+amount : Number
+type : String
+mode : String
+reference : String
+party : ObjectId
+createdAt : Date" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="50" y="600" width="240" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- PURCHASE RETURN -->
+        <mxCell id="8" value="PurchaseReturn
+-------------------------
+purchase : ObjectId
+items : Array
+returnAmount : Number
+reason : String
+createdAt : Date" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="350" y="600" width="260" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- SALE RETURN -->
+        <mxCell id="9" value="SaleReturn
+-------------------------
+sale : ObjectId
+items : Array
+returnAmount : Number
+reason : String
+createdAt : Date" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1">
+          <mxGeometry x="700" y="600" width="260" height="200" as="geometry"/>
+        </mxCell>
+
+        <!-- RELATIONSHIPS -->
+
+        <!-- Purchase -> Product -->
+        <mxCell id="10" edge="1" source="4" target="2" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Sale -> Product -->
+        <mxCell id="11" edge="1" source="5" target="2" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Order -> Sale -->
+        <mxCell id="12" edge="1" source="6" target="5" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Purchase -> Party -->
+        <mxCell id="13" edge="1" source="4" target="3" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- Payment -> Party -->
+        <mxCell id="14" edge="1" source="7" target="3" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- PurchaseReturn -> Purchase -->
+        <mxCell id="15" edge="1" source="8" target="4" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- SaleReturn -> Sale -->
+        <mxCell id="16" edge="1" source="9" target="5" style="edgeStyle=orthogonalEdgeStyle;">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,12 +1,14 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../middleware/upload");
 
 const {
   createProduct,
   getAllProducts,
   getLowStockProducts,
   getReorderSuggestions,
-  updateProduct
+  updateProduct,
+  getProductById
 } = require("../controllers/productController");
 
 const { protect, authorize } = require("../middleware/authMiddleware");
@@ -21,9 +23,15 @@ router.get("/low-stock", protect, authorize("Admin", "Manager"), getLowStockProd
 router.get("/reorder", protect, authorize("Admin","Manager"), getReorderSuggestions);
 
 // 🔐 All logged-in users
-router.get("/", protect, getAllProducts);
+router.get("/", getAllProducts);
+
+router.put("/:id", protect, upload.single("image"), updateProduct);
 
 // 🔐 Update product
 router.put("/:id", protect, authorize("Admin", "Manager"), updateProduct);
+
+router.get("/:id", protect, getProductById);
+
+
 
 module.exports = router;

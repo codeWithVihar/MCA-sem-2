@@ -17,7 +17,7 @@ exports.getAllUsers = async (req, res) => {
 
   } catch (error) {
 
-    console.log("GET USERS ERROR:", error);
+
 
     res.status(500).json({
       success: false,
@@ -84,7 +84,7 @@ exports.createUser = async (req, res) => {
 
   } catch (error) {
 
-    console.log("CREATE USER ERROR:", error);
+
 
     res.status(500).json({
       success: false,
