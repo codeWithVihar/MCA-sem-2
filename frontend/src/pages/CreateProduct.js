@@ -8,6 +8,7 @@ const CreateProduct = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [image, setImage] = useState(null);
   const [form, setForm] = useState({
     productName: "", brand: "", category: "", sku: "", unit: "Piece",
     purchasePrice: 0, sellingPrice: 0, gstPercent: 0, discountPercent: 0,
@@ -35,7 +36,10 @@ const CreateProduct = () => {
     if (!validate()) return;
     setSubmitting(true);
     try {
-      await API.post("/products", form);
+      const data = new FormData();
+      Object.keys(form).forEach((key) => data.append(key, form[key]));
+      if (image) data.append("image", image);
+      await API.post("/products", data);
       toast.success("Product created successfully");
       navigate("/products");
     } catch (error) {
@@ -143,6 +147,15 @@ const CreateProduct = () => {
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <h3 className="text-sm font-bold text-gray-700 mb-4 flex items-center gap-2">
+              <span className="w-6 h-6 bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center text-xs">4</span>
+              Product Image
+            </h3>
+            <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} className="w-full p-3 border border-gray-200 border-dashed rounded-xl text-sm bg-gray-50" />
           </div>
 
           <button type="submit" disabled={submitting} className="w-full bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition font-medium disabled:opacity-60">

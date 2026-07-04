@@ -94,9 +94,9 @@ const Customer = () => {
               </span>
 
               <div className="h-40 bg-gray-50 rounded-xl mb-4 overflow-hidden relative flex-shrink-0 flex items-center justify-center group-hover:bg-gray-100 transition">
-                {p.images ? (
+                {p.image ? (
                   <img
-                    src={`http://localhost:5000/uploads/${p.images}`}
+                    src={`http://localhost:5000/uploads/${p.image}`}
                     alt={p.productName}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

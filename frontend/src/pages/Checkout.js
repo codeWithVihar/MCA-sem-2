@@ -108,8 +108,8 @@ const Checkout = () => {
                 <div key={item._id} className="flex justify-between items-center p-4 border border-gray-100 rounded-2xl bg-gray-50/50">
                   <div className="flex gap-4 items-center">
                     <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex-shrink-0">
-                      {item.images ? (
-                        <img src={`http://localhost:5000/uploads/${item.images}`} alt="" className="w-full h-full object-cover" />
+                      {item.image ? (
+                        <img src={`http://localhost:5000/uploads/${item.image}`} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gray-100"></div>
                       )}

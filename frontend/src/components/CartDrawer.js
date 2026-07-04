@@ -50,8 +50,8 @@ const CartDrawer = ({ cart, setCart, isOpen, onClose, navigate }) => {
             cart.map((item) => (
               <div key={item._id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
                 <div className="w-20 h-20 bg-gray-50 rounded-xl overflow-hidden shrink-0">
-                  {item.images ? (
-                    <img src={`http://localhost:5000/uploads/${item.images}`} alt={item.productName} className="w-full h-full object-cover" />
+                  {item.image ? (
+                    <img src={`http://localhost:5000/uploads/${item.image}`} alt={item.productName} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No Img</div>
                   )}
