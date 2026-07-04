@@ -13,8 +13,8 @@ const {
 
 const { protect, authorize } = require("../middleware/authMiddleware");
 
-// 🔐 Admin only
-router.post("/", protect, authorize("Admin"), createProduct);
+// 🔐 Admin only (with image upload support)
+router.post("/", protect, authorize("Admin"), upload.single("image"), createProduct);
 
 // 🔐 Admin + Manager
 router.get("/low-stock", protect, authorize("Admin", "Manager"), getLowStockProducts);
@@ -25,13 +25,9 @@ router.get("/reorder", protect, authorize("Admin","Manager"), getReorderSuggesti
 // 🔐 All logged-in users
 router.get("/", getAllProducts);
 
-router.put("/:id", protect, upload.single("image"), updateProduct);
-
-// 🔐 Update product
-router.put("/:id", protect, authorize("Admin", "Manager"), updateProduct);
+// 🔐 Update product (Admin + Manager, with image upload)
+router.put("/:id", protect, authorize("Admin", "Manager"), upload.single("image"), updateProduct);
 
 router.get("/:id", protect, getProductById);
-
-
 
 module.exports = router;

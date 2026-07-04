@@ -15,13 +15,12 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const hashed = await bcrypt.hash(password, 10);
-
+    // Password hashing is handled by Customer model pre-save hook
     const customer = await Customer.create({
       name,
       email,
       phone,
-      password: hashed
+      password
     });
 
     res.json({
@@ -57,7 +56,8 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(
       { id: customer._id, role: "Customer" },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
     );
 
     res.json({

@@ -12,14 +12,15 @@ const purchaseSchema = new mongoose.Schema({
     {
       product: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Product"
+        ref: "Product",
+        required: true
       },
 
-      quantity: Number,
+      quantity: { type: Number, required: true, min: 1 },
 
-      purchasePrice: Number,
+      purchasePrice: { type: Number, required: true },
 
-      total: Number
+      total: { type: Number, required: true }
     }
   ],
 

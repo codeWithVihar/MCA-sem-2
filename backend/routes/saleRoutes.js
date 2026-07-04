@@ -31,12 +31,4 @@ router.get("/movement", protect, authorize("Admin","Manager"), getProductMovemen
 
 router.get("/:id", protect, authorize("Admin","Manager","Staff"), getSaleById);
 
-// ✅ Get single sale (invoice)
-router.get(
-  "/:id",
-  protect,
-  authorize("Admin", "Manager", "Staff"),
-  getSaleById
-);
-
 module.exports = router;

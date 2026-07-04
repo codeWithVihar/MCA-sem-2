@@ -9,11 +9,66 @@ import {
   Check, 
   Truck, 
   Clock, 
-  Loader2,
   Box,
   ChevronDown,
   ChevronUp
 } from "lucide-react";
+import LoadingBox from "../components/ui/LoadingBox";
+
+/* ================= STATUS LOGIC ================= */
+const steps = [
+  { label: "Placed", status: "PENDING", icon: Clock },
+  { label: "Dispatched", status: "DISPATCHED", icon: Truck },
+  { label: "Completed", status: "COMPLETED", icon: Check },
+];
+
+const getStepIndex = (status) => {
+  if (status === "COMPLETED") return 2;
+  if (status === "DISPATCHED") return 1;
+  return 0; // Default to PENDING
+};
+
+/* ================= TIMELINE UI ================= */
+const Timeline = ({ status }) => {
+  const currentStepIndex = getStepIndex(status);
+
+  return (
+    <div className="relative flex items-center justify-between mt-8 mb-4 w-full max-w-lg mx-auto">
+      {/* Background Line */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full z-0" />
+      
+      {/* Progress Line */}
+      <div 
+        className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-600 rounded-full z-0 transition-all duration-500 ease-in-out" 
+        style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
+      />
+
+      {/* Steps */}
+      {steps.map((step, index) => {
+        const isCompleted = index <= currentStepIndex;
+        const isActive = index === currentStepIndex;
+        const StepIcon = step.icon;
+
+        return (
+          <div key={step.label} className="relative z-10 flex flex-col items-center group">
+            <div
+              className={`w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-sm transition-colors duration-300 ${
+                isCompleted ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"
+              } ${isActive ? "ring-4 ring-blue-100" : ""}`}
+            >
+              <StepIcon size={18} strokeWidth={2.5} />
+            </div>
+            <p className={`absolute -bottom-7 text-xs font-medium whitespace-nowrap ${
+              isCompleted ? "text-gray-800" : "text-gray-400"
+            }`}>
+              {step.label}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 const CustomerProfile = () => {
   const [orders, setOrders] = useState([]);
@@ -52,61 +107,6 @@ const CustomerProfile = () => {
       });
   }, [customer?.phone]);
 
-  /* ================= STATUS LOGIC ================= */
-  const steps = [
-    { label: "Placed", status: "PENDING", icon: Clock },
-    { label: "Dispatched", status: "DISPATCHED", icon: Truck },
-    { label: "Completed", status: "COMPLETED", icon: Check },
-  ];
-
-  const getStepIndex = (status) => {
-    if (status === "COMPLETED") return 2;
-    if (status === "DISPATCHED") return 1;
-    return 0; // Default to PENDING
-  };
-
-  /* ================= TIMELINE UI ================= */
-  const Timeline = ({ status }) => {
-    const currentStepIndex = getStepIndex(status);
-
-    return (
-      <div className="relative flex items-center justify-between mt-8 mb-4 w-full max-w-lg mx-auto">
-        {/* Background Line */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full z-0" />
-        
-        {/* Progress Line */}
-        <div 
-          className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-600 rounded-full z-0 transition-all duration-500 ease-in-out" 
-          style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
-        />
-
-        {/* Steps */}
-        {steps.map((step, index) => {
-          const isCompleted = index <= currentStepIndex;
-          const isActive = index === currentStepIndex;
-          const StepIcon = step.icon;
-
-          return (
-            <div key={step.label} className="relative z-10 flex flex-col items-center group">
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-sm transition-colors duration-300 ${
-                  isCompleted ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-400"
-                } ${isActive ? "ring-4 ring-blue-100" : ""}`}
-              >
-                <StepIcon size={18} strokeWidth={2.5} />
-              </div>
-              <p className={`absolute -bottom-7 text-xs font-medium whitespace-nowrap ${
-                isCompleted ? "text-gray-800" : "text-gray-400"
-              }`}>
-                {step.label}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   // NEW: Determine which orders to show based on the toggle state
   const displayedOrders = showAllOrders ? orders : orders.slice(0, 1);
 
@@ -141,12 +141,7 @@ const CustomerProfile = () => {
           </div>
 
           {/* LOADING STATE */}
-          {isLoading && (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <Loader2 className="animate-spin mb-4 text-blue-600" size={32} />
-              <p>Loading your orders...</p>
-            </div>
-          )}
+          {isLoading && <LoadingBox text="Loading orders..." />}
 
           {/* ERROR STATE */}
           {!isLoading && error && (

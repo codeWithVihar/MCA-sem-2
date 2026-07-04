@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import { toast } from "react-toastify";
+import { UserPlus, Users, Shield, Mail, Key } from "lucide-react";
 
 const StaffManage = () => {
   const [users, setUsers] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(20);
+  const PAGE_SIZE = 20;
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -11,13 +15,12 @@ const StaffManage = () => {
     role: "Staff"
   });
 
- const loadUsers = () => {
-
-  API.get("/users")
-    .then(res => setUsers(res.data.data))
-    .catch(() => alert("Failed to load users"));
-
-};
+  const loadUsers = () => {
+    API.get("/users")
+      .then(res => setUsers(res.data.data))
+      .catch(() => toast.error("Failed to load users"));
+  };
+  
   useEffect(() => {
     loadUsers();
   }, []);
@@ -30,7 +33,7 @@ const StaffManage = () => {
     e.preventDefault();
     try {
       await API.post("/users", form);
-      alert("Staff created successfully");
+      toast.success("Staff created successfully");
       setForm({
         name: "",
         email: "",
@@ -39,100 +42,163 @@ const StaffManage = () => {
       });
       loadUsers();
     } catch {
-      alert("Creation failed");
+      toast.error("Creation failed");
     }
   };
 
+  const inputClass = "w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary transition";
+  const visibleUsers = users.slice(0, visibleCount);
+
   return (
     <Layout>
-      <h2 className="text-2xl font-semibold mb-6">
-        Staff Management
-      </h2>
+      <div className="space-y-6 max-w-6xl">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">Staff Management</h2>
+            <p className="text-sm text-gray-400 mt-1">Manage system access and roles</p>
+          </div>
+        </div>
 
-      {/* Create Staff Form */}
-      <div className="bg-white p-6 rounded-xl shadow-md mb-8 max-w-3xl">
-        <h3 className="text-lg font-semibold mb-4">
-          Create New Staff
-        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Create Staff Form */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-2xl shadow-card sticky top-24">
+              <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <UserPlus size={20} className="text-primary" />
+                Add New Staff
+              </h3>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="relative">
+                  <UserPlus size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    className={inputClass}
+                    name="name"
+                    placeholder="Full Name"
+                    value={form.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-          <input
-            className="p-3 border rounded-lg"
-            name="name"
-            placeholder="Full Name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    className={inputClass}
+                    name="email"
+                    type="email"
+                    placeholder="Email Address"
+                    value={form.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-          <input
-            className="p-3 border rounded-lg"
-            name="email"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
+                <div className="relative">
+                  <Key size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    className={inputClass}
+                    name="password"
+                    type="password"
+                    placeholder="Password"
+                    value={form.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-          <input
-            className="p-3 border rounded-lg"
-            name="password"
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
+                <div className="relative">
+                  <Shield size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <select
+                    className={`${inputClass} bg-white appearance-none`}
+                    name="role"
+                    value={form.role}
+                    onChange={handleChange}
+                  >
+                    <option value="Staff">Staff</option>
+                    <option value="Manager">Manager</option>
+                  </select>
+                </div>
 
-          <select
-            className="p-3 border rounded-lg"
-            name="role"
-            value={form.role}
-            onChange={handleChange}
-          >
-            <option value="Staff">Staff</option>
-            {/* <option value="Manager">Manager</option> */}
-            <option value="Admin">Admin</option>
-          </select>
+                <button
+                  type="submit"
+                  className="w-full bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 transition font-medium mt-2"
+                >
+                  Create Staff Account
+                </button>
+              </form>
+            </div>
+          </div>
 
-          <button
-            type="submit"
-            className="col-span-2 bg-primary px-6 py-3 rounded-lg hover:bg-secondary transition"
-          >
-            Create Staff
-          </button>
-        </form>
+          {/* Staff Table */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-card overflow-x-auto overflow-y-auto max-h-[calc(100vh-240px)] relative border border-gray-100">
+              <table className="w-full text-left">
+                <thead className="sticky top-0 z-10 bg-indigo-600 text-white shadow-sm">
+                  <tr>
+                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider">Name</th>
+                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider">Email</th>
+                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider">Role</th>
+                    <th className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {visibleUsers.map((u) => (
+                    <tr key={u._id} className="hover:bg-gray-50 transition">
+                      <td className="px-5 py-4 font-medium text-gray-800 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        {u.name}
+                      </td>
+                      <td className="px-5 py-4 text-gray-500 text-sm">{u.email}</td>
+                      <td className="px-5 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                          u.role === "Admin" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                        }`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        {u.isActive ? (
+                          <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5 text-sm text-gray-500 font-medium">
+                            <span className="w-2 h-2 rounded-full bg-gray-400"></span> Inactive
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {users.length === 0 && (
+                    <tr><td colSpan="4" className="px-5 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                          <Users size={28} className="text-gray-300" />
+                        </div>
+                        <p className="text-sm font-medium text-gray-500">No staff found</p>
+                        <p className="text-xs text-gray-400 mt-1">Add staff members to manage the system</p>
+                      </div>
+                    </td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            {users.length > visibleCount && (
+              <div className="text-center py-4 border-t border-gray-100">
+                <button
+                  onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}
+                  className="text-indigo-600 text-sm font-medium hover:text-indigo-800 transition"
+                >
+                  Show More ({users.length - visibleCount} remaining)
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-
-      {/* Staff Table */}
-      <div className="bg-white rounded-xl shadow-md">
-        <table className="w-full text-left">
-          <thead className="bg-primary">
-            <tr>
-              <th className="p-4">Name</th>
-              <th className="p-4">Email</th>
-              <th className="p-4">Role</th>
-              <th className="p-4">Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {users.map(u => (
-              <tr key={u._id} className="border-b">
-                <td className="p-4">{u.name}</td>
-                <td className="p-4">{u.email}</td>
-                <td className="p-4">{u.role}</td>
-                <td className="p-4">
-                  {u.isActive ? "Active" : "Inactive"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
     </Layout>
   );
 };

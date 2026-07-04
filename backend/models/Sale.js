@@ -2,16 +2,17 @@ const mongoose = require("mongoose");
 
 const saleSchema = new mongoose.Schema(
   {
-    invoiceNumber: String,
+    invoiceNumber: { type: String, required: true },
 
     items: [
       {
         product: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
+          required: true,
         },
-        quantitySold: Number,
-        sellingPrice: Number,
+        quantitySold: { type: Number, required: true, min: 1 },
+        sellingPrice: { type: Number, required: true },
         subTotal: Number,
         gstPercent: Number,
         gstAmount: Number,
@@ -19,9 +20,9 @@ const saleSchema = new mongoose.Schema(
       },
     ],
 
-    totalSubAmount: Number,
-    totalGSTAmount: Number,
-    grandTotal: Number,
+    totalSubAmount: { type: Number, default: 0 },
+    totalGSTAmount: { type: Number, default: 0 },
+    grandTotal: { type: Number, required: true },
   },
   { timestamps: true }
 );

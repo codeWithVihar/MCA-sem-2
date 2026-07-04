@@ -25,8 +25,8 @@ const productSchema = new mongoose.Schema({
   compatibility: String,
 
   /* 3. Inventory & Stock Details */
-  currentStock: { type: Number, default: 0 },
-  minStockLevel: { type: Number, default: 10 },
+  currentStock: { type: Number, default: 0, min: 0 },
+  minStockLevel: { type: Number, default: 10, min: 0 },
   maxStockLevel: { type: Number },
   unit: { type: String, default: "Piece" },
   warehouseLocation: String,
@@ -45,13 +45,13 @@ supplier: {
   type: mongoose.Schema.Types.ObjectId,
   ref: "Supplier"
 },
-  purchasePrice: Number,
+  purchasePrice: { type: Number, min: 0 },
   lastPurchaseDate: Date,
   leadTimeDays: Number,
   supplierWarranty: String,
 
   /* 5. Pricing & Sales Information */
-  sellingPrice: Number,
+  sellingPrice: { type: Number, min: 0 },
   discountPercent: { type: Number, default: 0 },
   gstPercent: { type: Number, default: 18 },
 

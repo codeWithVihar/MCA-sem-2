@@ -4,7 +4,8 @@ const salesReturnSchema = new mongoose.Schema({
 
   saleId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Sale"
+    ref: "Sale",
+    required: true
   },
 
   items: [
@@ -14,7 +15,7 @@ const salesReturnSchema = new mongoose.Schema({
         ref: "Product"
       },
 
-      quantityReturned: Number,
+      quantityReturned: { type: Number, required: true, min: 1 },
 
       reason: String
     }

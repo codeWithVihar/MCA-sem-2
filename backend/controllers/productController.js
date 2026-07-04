@@ -139,12 +139,12 @@ exports.updateProduct = async (req, res) => {
     if (req.body.unit) updateData.unit = req.body.unit;
 
     // ✅ convert numbers
-    if (req.body.purchasePrice) updateData.purchasePrice = Number(req.body.purchasePrice);
-    if (req.body.sellingPrice) updateData.sellingPrice = Number(req.body.sellingPrice);
-    if (req.body.gstPercent) updateData.gstPercent = Number(req.body.gstPercent);
-    if (req.body.discountPercent) updateData.discountPercent = Number(req.body.discountPercent);
-    if (req.body.minStockLevel) updateData.minStockLevel = Number(req.body.minStockLevel);
-    if (req.body.currentStock) updateData.currentStock = Number(req.body.currentStock);
+    if (req.body.purchasePrice !== undefined && req.body.purchasePrice !== "") updateData.purchasePrice = Number(req.body.purchasePrice);
+    if (req.body.sellingPrice !== undefined && req.body.sellingPrice !== "") updateData.sellingPrice = Number(req.body.sellingPrice);
+    if (req.body.gstPercent !== undefined && req.body.gstPercent !== "") updateData.gstPercent = Number(req.body.gstPercent);
+    if (req.body.discountPercent !== undefined && req.body.discountPercent !== "") updateData.discountPercent = Number(req.body.discountPercent);
+    if (req.body.minStockLevel !== undefined && req.body.minStockLevel !== "") updateData.minStockLevel = Number(req.body.minStockLevel);
+    if (req.body.currentStock !== undefined && req.body.currentStock !== "") updateData.currentStock = Number(req.body.currentStock);
 
     // ✅ booleans
     updateData.returnable = req.body.returnable === "true";
@@ -153,7 +153,7 @@ exports.updateProduct = async (req, res) => {
 
     // 🔥 MAIN FIX (FOR IMAGE)
     if (req.file) {
-      updateData.images = req.file.filename;
+      updateData.image = req.file.filename;
       console.log("IMAGE SAVING:", req.file.filename);
     }
 

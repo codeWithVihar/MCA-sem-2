@@ -1,20 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ===== BASE ===== */
 body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   @apply bg-background text-gray-800;
 }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.animate-fade-in {
+  animation: fade-in 0.35s ease-out;
+}
+.animate-slide-in {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+/* ===== GLASS CARD ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* ===== PRINT ===== */
 @media print {
   body * {
     visibility: hidden;
   }
-
   .max-w-4xl,
   .max-w-4xl * {
     visibility: visible;
   }
-
   .max-w-4xl {
     position: absolute;
     left: 0;
@@ -22,24 +75,10 @@ body {
     width: 100%;
   }
 }
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
-}
-/* Smooth font */
-body {
-  font-family: 'Inter', sans-serif;
-}
 
-/* 🔧 HARDWARE BACKGROUND PATTERN */
-
+/* ===== HARDWARE PATTERN ===== */
 .hardware-pattern {
   background: linear-gradient(135deg, #3b82f6, #06b6d4);
-
   background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27240%27%20height%3D%27240%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.2%27%20opacity%3D%270.25%27%3E%3Cpath%20d%3D%27M40%2060%20L70%2090%20M65%2085%20L90%2060%27%2F%3E%3Cpath%20d%3D%27M160%2050%20L190%2080%20M185%2075%20L210%2050%27%2F%3E%3Cline%20x1%3D%2760%27%20y1%3D%27160%27%20x2%3D%27100%27%20y2%3D%27200%27%2F%3E%3Cpath%20d%3D%27M150%20150%20L190%20190%20M185%20185%20L210%20160%27%2F%3E%3Cpolygon%20points%3D%27120%2C120%20135%2C135%20120%2C150%20105%2C135%27%2F%3E%3Ccircle%20cx%3D%2740%27%20cy%3D%27180%27%20r%3D%2718%27%2F%3E%3Ccircle%20cx%3D%2740%27%20cy%3D%27180%27%20r%3D%276%27%2F%3E%3Cpath%20d%3D%27M180%20120%20L220%20140%20L200%20160%20Z%27%2F%3E%3C%2Fsvg%3E");
-
   background-size: 240px 240px;
 }

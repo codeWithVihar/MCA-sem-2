@@ -7,8 +7,8 @@ const orderSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product"
       },
-      quantity: Number,
-      price: Number
+      quantity: { type: Number, required: true, min: 1 },
+      price: { type: Number, required: true }
     }
   ],
 
@@ -26,7 +26,9 @@ const orderSchema = new mongoose.Schema({
   // NEW
   customerEmail: {
     type: String,
-    required: true
+    required: true,
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"]
   },
 
   customerAddress: String,

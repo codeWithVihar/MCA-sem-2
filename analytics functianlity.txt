@@ -1,0 +1,105 @@
+The Analytics page has 3 tabs with both existing analytics and new AI-powered features. Here's how everything works:
+
+---
+
+## Tab 1 — Overview
+
+### Data Loading
+On mount and month change, two parallel data fetch groups run:
+
+**Existing API calls** (`useEffect` on `[month]`):
+- `GET /api/analytics/sales-vs-purchase-month?month=&year=` — daily sales + purchase amounts for the selected month (used for the chart + KPI totals)
+- `GET /api/sales/movement` — product movement data (loading gate — page doesn't render until this resolves)
+- `GET /api/analytics/reorder-ml` — reorder suggestions (preserved for backwards compat)
+- `GET /api/analytics/dead-stock` — dead stock list
+- `GET /api/analytics/inventory-value` — total inventory valuation
+- `GET /api/sales/top-products?month=&year=` — top N products by qty sold
+
+**AI API calls** (`useEffect` on mount, uses `Promise.allSettled` so individual failures don't block others):
+- `GET /api/ai/dashboard` — aggregated AI health + stockout + movement etc.
+- `GET /api/ai/sales-prediction` — tomorrow / 7-day / 30-day forecasts
+- `GET /api/ai/demand-forecast` — per-product predicted demand (top 10)
+- `GET /api/ai/restock` — restock recommendations with quantities
+- `GET /api/ai/stockout` — days-until-stockout per product
+- `GET /api/ai/fast-moving` — Fast/Medium/Slow classification
+- `GET /api/ai/profit` — next month revenue & profit prediction
+- `GET /api/ai/supplier` — supplier ranking scores
+
+### KPI Cards
+**Row 1 (4 cards):** Original gradient cards showing Sales, Purchase, Profit, Inventory Value — all computed from the monthly data array (`totalSales`, `totalPurchase`, `totalProfit = sales - purchase`).
+
+**Row 2 (8 cards):** AI-powered cards that render only after `aiLoading` completes:
+- *Today's Sales* — last day's actual sales from monthly data
+- *Tomorrow/Weekly/Monthly Prediction* — values from `/ai/sales-prediction`. The `weeklyPred` and `monthlyPred` sum up individual day predictions
+- *Expected Profit* — from `/ai/profit` → `nextMonthProfit`
+- *To Restock* — count of products where `recommendedQty > 0`
+- *Stock-Out Alerts* — count of products where `daysUntilStockout < 30`
+- *Inventory Health* — circular SVG gauge showing a composite 0-100 score
+
+### Charts
+**Daily Sales vs Purchase** — `AreaChart` from recharts. Two overlapping gradient areas (indigo for sales, amber for purchase) showing day-by-day values for the selected month.
+
+**Sales Trend + AI Forecast** — Only renders if `aiSalesPred.weekly` data exists. Merges:
+1. Actual daily data from the monthly API (`{ day, actual, forecast: null }`)
+2. AI forecast data for next 7 days (`{ day: "F+1", actual: null, forecast: ... }`)
+The actual line is solid indigo, the forecast line is dashed violet — creates a clear "past vs future" visual boundary.
+
+---
+
+## Tab 2 — AI Forecasts
+
+### Demand Forecast Bar Chart
+Horizontal `BarChart` showing top 10 products by predicted daily demand. Uses data from `/ai/demand-forecast`. Each bar represents `predicted_daily_demand` in units. The layout is vertical (horizontal bars) with product names on Y-axis.
+
+### Profit Forecast Line Chart
+`LineChart` with 2 data points:
+- **Current Month** — computed from the actual monthly data (`totalSales`, `totalProfit`)
+- **Next Month (AI)** — from `/ai/profit` (`nextMonthRevenue`, `nextMonthProfit`)
+Two lines: Revenue (indigo) and Profit (emerald). Simple but effective forward-looking view.
+
+### Stock-Out Risk Bar Chart
+Horizontal bars showing days until each product runs out of stock. Color-coded:
+- **Green** (`>= 60` days) — safe
+- **Amber** (`30-59` days) — warning
+- **Red** (`< 30` days) — critical
+Uses `Cell` component from recharts for per-bar coloring.
+
+---
+
+## Tab 3 — AI Insights
+
+### Fast vs Slow Moving Pie Chart
+`PieChart` with 3 slices based on `/ai/fast-moving` response:
+- **Fast Moving** (green) — top 33rd percentile by 90-day sales volume
+- **Medium** (amber) — middle 33rd percentile
+- **Slow Moving** (red) — bottom 33rd percentile
+Labels show percentage, legend below shows counts.
+
+### Top Products (preserved)
+Original card listing top 5 products by quantity sold with medal-style rank badges.
+
+### Restock Recommendations Table
+Renders only products where `recommendedQty > 0`. Columns:
+| Product | Current Stock | Avg Daily Sales | Predicted 30d | Safety Stock | Recommended |
+|---|---|---|---|---|---|
+Computed server-side as: `max(predicted_demand_30d + safety_stock - current_stock, 0)` where `safety_stock = minStockLevel * 0.5`.
+
+### Supplier Recommendations Table
+From `/ai/supplier` response. Columns:
+| Supplier | AI Score (badge) | Price Score | Delivery Score | Rating (star icons) | Product Count |
+|---|---|---|---|---|---|
+The AI Score badge is color-coded: green >= 70, amber >= 40, red < 40. Score formula: `price_score * 0.4 + delivery_score * 0.3 + rating_score * 0.3`.
+
+---
+
+## Architecture Flow
+
+```
+React (Analytics.js)
+  └─ axios → Node.js Express (:5000)
+       ├─ /api/analytics/* → MongoDB via Mongoose (existing)
+       └─ /api/ai/* → aiController.js → fetch → Python FastAPI (:8000)
+             └─ predict.py → MongoDB via pymongo
+```
+
+The Node.js proxy layer (`aiController.js`) uses `fetch` with a 15-second timeout and returns a 503 fallback if FastAPI is unreachable. The frontend handles this gracefully — all AI sections simply don't render if data is missing.

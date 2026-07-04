@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import { toast } from "react-toastify";
+import { PackagePlus, PackageMinus, Box } from "lucide-react";
 
 const StockManage = () => {
   const [products, setProducts] = useState([]);
@@ -11,109 +13,122 @@ const StockManage = () => {
   useEffect(() => {
     API.get("/products")
       .then((res) => setProducts(res.data.data))
-      .catch(() => alert("Failed to load products"));
+      .catch(() => toast.error("Failed to load products"));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const qty = Number(quantity);
+    if (!productId || qty <= 0) {
+      return toast.warn("Please select a product and enter a valid quantity.");
+    }
     try {
       const url = type === "IN" ? "/stock/in" : "/stock/out";
       await API.post(url, {
         productId,
-        quantity: Number(quantity),
+        quantity: qty,
         reason: type === "IN" ? "UI Stock In" : "UI Stock Out",
       });
-      alert("Stock updated successfully");
+      toast.success("Stock updated successfully");
+      setProductId("");
+      setQuantity(0);
     } catch (err) {
-      alert("Operation failed");
+      toast.error("Operation failed");
     }
   };
 
   return (
     <Layout>
-      <h2 className="text-2xl font-semibold mb-6">Stock Management</h2>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Stock Management</h2>
+          <p className="text-sm text-gray-400 mt-1">Manually adjust inventory levels</p>
+        </div>
 
-      <div className="max-w-2xl bg-white p-8 rounded-xl shadow-md">
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-
-          {/* Product Select */}
-          <div>
-            <label className="block mb-2 font-medium">
-              Select Product
-            </label>
-            <select
-              value={productId}
-              onChange={(e) => setProductId(e.target.value)}
-              required
-              className="w-full p-3 rounded-lg border focus:ring-2 focus:ring-secondary"
-            >
-              <option value="">-- Choose Product --</option>
-              {products.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.productName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Quantity */}
-          <div>
-            <label className="block mb-2 font-medium">
-              Quantity
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              required
-              className="w-full p-3 rounded-lg border focus:ring-2 focus:ring-secondary"
-            />
-          </div>
-
-          {/* Stock Type Toggle */}
-          <div>
-            <label className="block mb-3 font-medium">
-              Stock Operation
-            </label>
-
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => setType("IN")}
-                className={`flex-1 py-2 rounded-lg transition ${
-                  type === "IN"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200"
-                }`}
-              >
-                Stock IN
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setType("OUT")}
-                className={`flex-1 py-2 rounded-lg transition ${
-                  type === "OUT"
-                    ? "bg-red-500 text-white"
-                    : "bg-gray-200"
-                }`}
-              >
-                Stock OUT
-              </button>
+        <div className="bg-white p-8 rounded-2xl shadow-card">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* Stock Type Toggle */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Operation Type
+              </label>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setType("IN")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition font-medium border-2 ${
+                    type === "IN"
+                      ? "bg-emerald-50 border-emerald-500 text-emerald-700 shadow-sm"
+                      : "bg-white border-gray-100 text-gray-500 hover:border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <PackagePlus size={18} className={type === "IN" ? "text-emerald-500" : "text-gray-400"} />
+                  Stock IN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setType("OUT")}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition font-medium border-2 ${
+                    type === "OUT"
+                      ? "bg-rose-50 border-rose-500 text-rose-700 shadow-sm"
+                      : "bg-white border-gray-100 text-gray-500 hover:border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <PackageMinus size={18} className={type === "OUT" ? "text-rose-500" : "text-gray-400"} />
+                  Stock OUT
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-primary hover:bg-secondary py-3 rounded-lg transition font-medium"
-          >
-            Update Stock
-          </button>
+            {/* Product Select */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Select Product
+              </label>
+              <div className="relative">
+                <Box size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <select
+                  value={productId}
+                  onChange={(e) => setProductId(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary transition bg-white"
+                >
+                  <option value="">-- Choose Product --</option>
+                  {products.map((p) => (
+                    <option key={p._id} value={p._id}>
+                      {p.productName} (Stock: {p.currentStock})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-        </form>
+            {/* Quantity */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Quantity
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                required
+                className="w-full p-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary transition"
+                placeholder="Enter quantity"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full bg-indigo-600 text-white py-3.5 rounded-xl hover:bg-indigo-700 transition font-semibold flex items-center justify-center gap-2 mt-4"
+            >
+              Confirm Update
+            </button>
+          </form>
+        </div>
       </div>
     </Layout>
   );

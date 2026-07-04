@@ -1,6 +1,7 @@
 const Product = require("../models/Product");
 const Sale = require("../models/Sale");
 const StockTransaction = require("../models/StockTransaction");
+const updateStockStatus = require("../utils/stockHelper");
 
 /* ================= SALES RETURN ================= */
 
@@ -68,14 +69,7 @@ exports.processSalesReturn = async (req, res) => {
 
       /* Update stock status */
 
-      if (product.currentStock === 0) {
-        product.stockStatus = "OUT_OF_STOCK";
-      } else if (product.currentStock <= product.minStockLevel) {
-        product.stockStatus = "LOW_STOCK";
-      } else {
-        product.stockStatus = "IN_STOCK";
-      }
-
+      await updateStockStatus(product, false);
       await product.save();
 
       /* Save stock transaction */

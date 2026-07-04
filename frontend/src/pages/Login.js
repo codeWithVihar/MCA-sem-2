@@ -2,9 +2,15 @@ import React, { useState, useEffect, useMemo } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
+import { Settings, PenTool, Wrench, Hammer, Package, Truck, Box, Layers, ArrowLeft } from "lucide-react";
 
-const Login = ({ setAuth }) => {
+const iconsList = [Settings, PenTool, Wrench, Hammer, Package, Truck, Box, Layers];
+
+const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
@@ -15,31 +21,27 @@ const Login = ({ setAuth }) => {
   const [timer, setTimer] = useState(0);
   const [success, setSuccess] = useState(false);
 
-  // Expanded tools list including your new decorative additions
-  const toolsList = ["🔧", "🔩", "⚙️", "🔨", "⛓️", "🛠️", "⛏️", "🪚"];
+  // Generate smooth floating elements
+  const floatingElements = useMemo(() => {
+    return Array.from({ length: 24 }).map((_, i) => {
+      const Icon = iconsList[Math.floor(Math.random() * iconsList.length)];
+      const size = Math.random() * 60 + 40; // 40px to 100px
+      const initialRotate = Math.random() * 360;
 
-  // Generate a messy scattered layout with floating animation parameters once on load
-  const scatteredFloatingTools = useMemo(() => {
-    return Array.from({ length: 80 }).map((_, i) => {
-      // Calculate random initial rotation as a number for keyframes
-      const initialRotateDeg = Math.random() * 360;
-      
       return {
         id: i,
-        tool: toolsList[Math.floor(Math.random() * toolsList.length)],
+        Icon,
+        size,
         top: `${Math.random() * 100}%`,
         left: `${Math.random() * 100}%`,
-        fontSize: `${Math.random() * 0.8 + 1}rem`, // Smaller size range
+        opacity: Math.random() * 0.15 + 0.05, // 5% to 20% opacity
 
-        // Floating Animation Parameters
-        animateX: [0, (Math.random() - 0.5) * 35, (Math.random() - 0.5) * 35, 0], // Small random drifts
-        animateY: [0, (Math.random() - 0.5) * 35, (Math.random() - 0.5) * 35, 0], // Small random drifts
-        
-        // Full rotation loop keyframes starting from random initial rotation
-        animateRotate: [initialRotateDeg, initialRotateDeg + 360, initialRotateDeg],
-        
-        // Random duration for each element's animation cycle (between 12 and 22 seconds)
-        duration: 12 + Math.random() * 10,
+        // Floating Animation
+        animateX: [(Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50],
+        animateY: [(Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50],
+        animateRotate: [initialRotate, initialRotate + (Math.random() > 0.5 ? 180 : -180)],
+
+        duration: 20 + Math.random() * 20, // 20s to 40s for very slow, premium movement
       };
     });
   }, []);
@@ -54,7 +56,7 @@ const Login = ({ setAuth }) => {
       setStep(2);
       setTimer(60); // 60 sec timer
     } catch (err) {
-alert("Invalid email or password")
+      toast.error(err.response?.data?.message || "Invalid email or password");
     }
 
     setLoading(false);
@@ -71,13 +73,11 @@ alert("Invalid email or password")
       setSuccess(true);
 
       setTimeout(() => {
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("role", res.data.role);
-        setAuth(true);
+        login(res.data.token, res.data.role, res.data.name);
         navigate("/dashboard");
       }, 1200);
     } catch (err) {
-alert("Invalid or expired OTP")
+      toast.error(err.response?.data?.message || "Invalid or expired OTP");
     }
 
     setLoading(false);
@@ -88,8 +88,9 @@ alert("Invalid or expired OTP")
     try {
       await API.post("/auth/login", { email, password });
       setTimer(60);
+      toast.success("OTP resent successfully");
     } catch (err) {
-alert("Error resending OTP")
+      toast.error(err.response?.data?.message || "Error resending OTP");
     }
   };
 
@@ -104,23 +105,53 @@ alert("Error resending OTP")
     }
   }, [timer]);
 
+  const inputClass = "w-full pl-4 pr-4 py-3.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary transition bg-gray-50 focus:bg-white";
+
   return (
-    <div
-      className="min-h-screen flex items-center justify-center relative overflow-hidden"
-      style={{
-        background: `linear-gradient(to bottom right, #E8F9FF, #C5BAFF)`,
-      }}
-    >
-      {/* Floating, Messy, Unaligned, Smaller, and Visible Hardware Tools */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-50 z-00">
-        {scatteredFloatingTools.map((item) => (
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ backgroundColor: "#F4F6FB" }}>
+
+      {/* Dynamic Background Elements */}
+      <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+        {/* Animated Gradient Orbs using requested colors */}
+        <motion.div
+          className="absolute w-[800px] h-[800px] rounded-full blur-[120px]"
+          style={{ 
+            background: "radial-gradient(circle, #C4D9FF 0%, rgba(196, 217, 255, 0) 70%)",
+            top: "-20%", 
+            left: "-10%" 
+          }}
+          animate={{
+            x: [0, 100, 0, -100, 0],
+            y: [0, 50, 100, 50, 0],
+            scale: [1, 1.1, 1, 1.1, 1],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.div
+          className="absolute w-[900px] h-[900px] rounded-full blur-[140px]"
+          style={{ 
+            background: "radial-gradient(circle, rgba(197, 186, 255, 0.5) 0%, rgba(197, 186, 255, 0) 70%)",
+            bottom: "-30%", 
+            right: "-20%" 
+          }}
+          animate={{
+            x: [0, -150, 0, 150, 0],
+            y: [0, -100, -50, -100, 0],
+            scale: [1, 1.2, 1, 1.2, 1],
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        />
+
+        {/* Floating Icons */}
+        {floatingElements.map((item) => (
           <motion.div
             key={item.id}
-            className="absolute flex items-center justify-center drop-shadow-md text-gray-900"
+            className="absolute"
             style={{
               top: item.top,
               left: item.left,
-              fontSize: item.fontSize,
+              opacity: item.opacity,
+              color: "#C5BAFF", // Using the light purple color
             }}
             animate={{
               x: item.animateX,
@@ -130,122 +161,146 @@ alert("Error resending OTP")
             transition={{
               duration: item.duration,
               repeat: Infinity,
-              ease: "easeInOut", // Smooth drifting and rotating
+              repeatType: "reverse",
+              ease: "easeInOut",
             }}
           >
-            {item.tool}
+            <item.Icon size={item.size} strokeWidth={1} />
           </motion.div>
         ))}
       </div>
 
-      {/* Decorative Blur Blobs */}
-      <div className="absolute w-72 h-72 bg-[#C4D9FF] blur-3xl rounded-full -top-10 -left-10 opacity-60 pointer-events-none z-1"></div>
-      <div className="absolute w-80 h-80 bg-[#a190ff] blur-3xl rounded-full -bottom-16 right-0 opacity-40 pointer-events-none z-1"></div>
+      <div className="w-full max-w-[400px] relative z-10 px-6">
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 mb-8 transition">
+          <ArrowLeft size={16} /> Back to home
+        </button>
 
-      {/* Main Glassmorphism Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="backdrop-blur-xl bg-white/40 shadow-2xl p-10 rounded-3xl border border-white/50 w-[380px] transition-all duration-300 relative z-10"
-      >
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6 tracking-tight">
-          {success ? "Welcome!" : step === 1 ? "Login" : "Verify OTP"}
-        </h2>
-
-        {/* SUCCESS ANIMATION */}
-        {success && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="flex justify-center text-5xl text-green-600 mb-4 drop-shadow-md"
-          >
-            ✔
-          </motion.div>
-        )}
-
-        {/* STEP 1 */}
-        {!success && step === 1 && (
-          <form onSubmit={handleLogin} className="space-y-5">
-            <input
-              type="email"
-              placeholder="Email Address"
-              className="w-full p-3.5 rounded-xl bg-white/70 border border-white/60 focus:outline-none focus:ring-2 focus:ring-[#9a8aff] text-gray-800 placeholder-gray-500 shadow-sm"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-
-            <input
-              type="password"
-              placeholder="Password"
-              className="w-full p-3.5 rounded-xl bg-white/70 border border-white/60 focus:outline-none focus:ring-2 focus:ring-[#9a8aff] text-gray-800 placeholder-gray-500 shadow-sm"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#b3a8ff] to-[#9a8aff] hover:from-[#a190ff] hover:to-[#8370ff] text-white transition-all p-3.5 rounded-xl font-bold shadow-lg flex justify-center items-center"
-            >
-              {loading ? "Sending OTP..." : "Continue"}
-            </button>
-          </form>
-        )}
-
-        {/* STEP 2 */}
-        {!success && step === 2 && (
-          <form onSubmit={handleOtpVerify} className="space-y-5">
-            <p className="text-center text-sm text-gray-600">
-              OTP sent to <span className="font-semibold text-gray-800">{email}</span>
-            </p>
-
-            <input
-              type="text"
-              maxLength="6"
-              placeholder="Enter OTP"
-              className="w-full p-3.5 rounded-xl text-center tracking-[0.3em] font-semibold text-xl bg-white/70 border border-white/60 focus:outline-none focus:ring-2 focus:ring-[#9a8aff] text-gray-800 shadow-sm"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              required
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-[#b3a8ff] to-[#9a8aff] hover:from-[#a190ff] hover:to-[#8370ff] text-white transition-all p-3.5 rounded-xl font-bold shadow-lg flex justify-center"
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
-            </button>
-
-            {/* RESEND OTP */}
-            <div className="text-center text-sm mt-3">
-              {timer > 0 ? (
-                <span className="text-gray-500 font-medium">
-                  Resend OTP in {timer}s
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={resendOtp}
-                  className="text-[#6B46C1] hover:text-[#553C9A] font-semibold hover:underline transition-colors"
-                >
-                  Resend OTP
-                </button>
-              )}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/80 backdrop-blur-2xl shadow-card border border-white p-10 rounded-3xl transition-all duration-300"
+        >
+          <div className="flex justify-center mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+              <Box size={24} className="text-white" />
             </div>
+          </div>
 
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="w-full text-sm text-gray-500 mt-2 hover:text-gray-800 transition-colors"
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">
+            {success ? "Welcome Back!" : step === 1 ? "Admin Access" : "Security Check"}
+          </h2>
+          <p className="text-sm text-center text-gray-500 mb-8">
+            {success ? "Logging you in securely..." : step === 1 ? "Enter your credentials to continue" : "Verify your identity"}
+          </p>
+
+          {/* SUCCESS ANIMATION */}
+          {success && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="flex justify-center mb-4"
             >
-              ← Back to Login
-            </button>
-          </form>
-        )}
-      </motion.div>
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center">
+                <span className="text-4xl text-emerald-500">✔</span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 1 */}
+          {!success && step === 1 && (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="admin@smartstore.com"
+                  className={inputClass}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Password</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className={inputClass}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-all py-3.5 rounded-xl font-bold shadow-lg mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {loading ? "Authenticating..." : "Sign In to Dashboard"}
+              </button>
+            </form>
+          )}
+
+          {/* STEP 2 */}
+          {!success && step === 2 && (
+            <form onSubmit={handleOtpVerify} className="space-y-5">
+              <div className="bg-indigo-50 p-4 rounded-xl text-center mb-6 border border-indigo-100">
+                <p className="text-sm text-indigo-800">
+                  We sent a code to <br /><span className="font-semibold">{email}</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 text-center">One-Time Password</label>
+                <input
+                  type="text"
+                  maxLength="6"
+                  placeholder="000000"
+                  className="w-full py-4 rounded-xl text-center tracking-[0.5em] font-bold text-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary transition bg-gray-50 focus:bg-white"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-all py-3.5 rounded-xl font-bold shadow-lg"
+              >
+                {loading ? "Verifying..." : "Verify Code"}
+              </button>
+
+              {/* RESEND OTP */}
+              <div className="text-center text-sm mt-4">
+                {timer > 0 ? (
+                  <span className="text-gray-400 font-medium">
+                    Resend code in {timer}s
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={resendOtp}
+                    className="text-indigo-600 font-semibold hover:underline transition-colors"
+                  >
+                    Resend verification code
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="w-full text-sm text-gray-500 mt-2 hover:text-gray-800 transition-colors"
+              >
+                ← Use a different account
+              </button>
+            </form>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 };

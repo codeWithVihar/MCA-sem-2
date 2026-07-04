@@ -1,16 +1,7 @@
 const Product = require("../models/Product");
 const StockTransaction = require("../models/StockTransaction");
 const logAudit = require("../utils/auditLogger");
-
-const updateStockStatus = (product) => {
-  if (product.currentStock === 0) {
-    product.stockStatus = "OUT_OF_STOCK";
-  } else if (product.currentStock <= product.minStockLevel) {
-    product.stockStatus = "LOW_STOCK";
-  } else {
-    product.stockStatus = "IN_STOCK";
-  }
-};
+const updateStockStatus = require("../utils/stockHelper");
 
 /* STOCK IN (Purchase / Add Stock) */
 exports.stockIn = async (req, res) => {
@@ -25,18 +16,18 @@ exports.stockIn = async (req, res) => {
 
 
     product.currentStock += quantity;
-    updateStockStatus(product);
+    await updateStockStatus(product, false);
     await product.save();
     await logAudit({
-  action: "STOCK_UPDATE",
-  performedBy: req.user.id,
-  entityType: "Product",
-  entityId: productId,
-  details: {
-    type,          // IN or OUT
-    quantity       // how much changed
-  }
-});
+      action: "STOCK_UPDATE",
+      performedBy: req.user.id,
+      entityType: "Product",
+      entityId: productId,
+      details: {
+        type: "IN",
+        quantity
+      }
+    });
 
     await StockTransaction.create({
       product: productId,
@@ -73,7 +64,17 @@ exports.stockOut = async (req, res) => {
   
 
     product.currentStock -= quantity;
-    updateStockStatus(product);
+    await updateStockStatus(product, false);
+    await logAudit({
+      action: "STOCK_UPDATE",
+      performedBy: req.user.id,
+      entityType: "Product",
+      entityId: productId,
+      details: {
+        type: "OUT",
+        quantity
+      }
+    });
     await product.save();
 
     await StockTransaction.create({
@@ -129,6 +130,5 @@ exports.getAllStockHistory = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-  exports.updateStockStatus
 };
 

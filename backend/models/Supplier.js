@@ -22,6 +22,18 @@ const supplierSchema = new mongoose.Schema(
     }
   ],
 
+  rating: {
+    type: Number,
+    default: 3,
+    min: 1,
+    max: 5
+  },
+
+  deliveryTimeDays: {
+    type: Number,
+    default: 7
+  },
+
   status: {
     type: String,
     enum: ["Active", "Inactive"],

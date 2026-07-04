@@ -1,18 +1,35 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const customerSchema = new mongoose.Schema({
 
-  name: String,
+  name: {
+    type: String,
+    required: true
+  },
 
   email: {
     type: String,
-    unique: true
+    required: true,
+    unique: true,
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"]
   },
 
   phone: String,
 
-  password: String,
+  password: {
+    type: String,
+    required: true,
+    minlength: 6
+  },
 
 }, { timestamps: true });
+
+customerSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
 
 module.exports = mongoose.model("Customer", customerSchema);

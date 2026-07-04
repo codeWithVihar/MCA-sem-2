@@ -2,18 +2,22 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import API from "../services/api";
 import Layout from "../components/Layout";
+import LoadingBox from "../components/ui/LoadingBox";
+import { toast } from "react-toastify";
 
 const Invoice = () => {
   const { id } = useParams();
   const [sale, setSale] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     API.get(`/sales/${id}`)
       .then((res) => setSale(res.data))
-      .catch(() => alert("Failed to load invoice"));
+      .catch(() => { setError("Failed to load invoice"); toast.error("Failed to load invoice"); });
   }, [id]);
 
-  if (!sale) return <Layout><p>Loading...</p></Layout>;
+  if (!sale && !error) return <Layout><LoadingBox text="Loading invoice..." /></Layout>;
+  if (error) return <Layout><div className="text-center py-16 text-gray-500">{error}</div></Layout>;
 
   return (
     <Layout>
@@ -40,7 +44,7 @@ const Invoice = () => {
 
         {/* Items Table */}
         <table className="w-full mb-8 border-collapse">
-          <thead className="bg-primary">
+          <thead className="bg-primary text-gray-800">
             <tr>
               <th className="p-3 text-left">Product</th>
               <th className="p-3 text-left">Qty</th>
@@ -93,7 +97,7 @@ const Invoice = () => {
         <div className="text-right mt-6">
           <button
             onClick={() => window.print()}
-            className="bg-secondary px-6 py-2 rounded-lg hover:bg-primary transition"
+            className="bg-secondary text-gray-800 px-6 py-2 rounded-lg hover:bg-primary transition"
           >
             Print Invoice
           </button>

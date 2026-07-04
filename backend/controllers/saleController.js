@@ -1,31 +1,7 @@
 const Product = require("../models/Product");
 const Sale = require("../models/Sale");
 const logAudit = require("../utils/auditLogger");
-const sendLowStockEmail = require("../utils/emailService");
-/* ================= HELPER ================= */
-const updateStockStatus = async (product) => {
-
-  if (product.currentStock === 0) {
-
-    product.stockStatus = "OUT_OF_STOCK";
-
-    await sendLowStockEmail(product);
-
-  } 
-  else if (product.currentStock <= product.minStockLevel) {
-
-    product.stockStatus = "LOW_STOCK";
-
-    await sendLowStockEmail(product);
-
-  } 
-  else {
-
-    product.stockStatus = "IN_STOCK";
-
-  }
-
-};
+const updateStockStatus = require("../utils/stockHelper");
 
 /* ================= CREATE MULTI-ITEM SALE ================= */
 exports.createSale = async (req, res) => {
@@ -72,7 +48,7 @@ exports.createSale = async (req, res) => {
 
       // Reduce stock
       product.currentStock -= item.quantitySold;
-      updateStockStatus(product);
+      await updateStockStatus(product, true);
       await product.save();
     }
 
@@ -227,7 +203,16 @@ exports.getMonthlySales = async (req, res) => {
 /* ================= TOP SELLING PRODUCTS ================= */
 exports.getTopProducts = async (req, res) => {
   try {
+    const { month, year } = req.query;
+    const matchStage = {};
+    if (month && year) {
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 1);
+      matchStage.createdAt = { $gte: start, $lt: end };
+    }
+
     const topProducts = await Sale.aggregate([
+      { $match: matchStage },
       { $unwind: "$items" },
       {
         $group: {

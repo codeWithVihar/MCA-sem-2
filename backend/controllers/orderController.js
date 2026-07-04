@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const Sale = require("../models/Sale");
+const updateStockStatus = require("../utils/stockHelper");
 const nodemailer = require("nodemailer");
 const PDFDocument = require("pdfkit");
 const path = require("path");
@@ -422,17 +423,7 @@ exports.dispatchOrder = async (req, res) => {
 
       /* UPDATE STOCK */
       product.currentStock -= item.quantity;
-
-      if (product.currentStock === 0) {
-        product.stockStatus = "OUT_OF_STOCK";
-      } else if (
-        product.currentStock <= product.minStockLevel
-      ) {
-        product.stockStatus = "LOW_STOCK";
-      } else {
-        product.stockStatus = "IN_STOCK";
-      }
-
+      await updateStockStatus(product, false);
       await product.save();
     }
 
@@ -458,36 +449,33 @@ exports.dispatchOrder = async (req, res) => {
 
     /* SEND EMAIL */
     if (order.customerEmail) {
-      const pdfBuffer = await generateInvoicePDF(sale, order);
+      try {
+        const pdfBuffer = await generateInvoicePDF(sale, order);
 
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: order.customerEmail,
-        subject: `Invoice ${sale.invoiceNumber} - Order Dispatched`,
-        html: `
-          <div style="font-family:Arial;padding:20px">
-            <h2>Hello ${order.customerName},</h2>
-
-            <p>Your order has been dispatched successfully.</p>
-
-            <p>Please find your invoice attached.</p>
-
-            <p>
-              <b>Invoice Number:</b> ${sale.invoiceNumber}
-            </p>
-
-            <br/>
-
-            <p>Thank you for shopping with us.</p>
-          </div>
-        `,
-        attachments: [
-          {
-            filename: `${sale.invoiceNumber}.pdf`,
-            content: pdfBuffer
-          }
-        ]
-      });
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: order.customerEmail,
+          subject: `Invoice ${sale.invoiceNumber} - Order Dispatched`,
+          html: `
+            <div style="font-family:Arial;padding:20px">
+              <h2>Hello ${order.customerName},</h2>
+              <p>Your order has been dispatched successfully.</p>
+              <p>Please find your invoice attached.</p>
+              <p><b>Invoice Number:</b> ${sale.invoiceNumber}</p>
+              <br/>
+              <p>Thank you for shopping with us.</p>
+            </div>
+          `,
+          attachments: [
+            {
+              filename: `${sale.invoiceNumber}.pdf`,
+              content: pdfBuffer
+            }
+          ]
+        });
+      } catch (emailError) {
+        console.error("Email send failed (non-fatal):", emailError.message);
+      }
     }
 
     if (global.io) {

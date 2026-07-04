@@ -4,7 +4,6 @@ const router = express.Router();
 const {
   createOrder,
   getPendingOrders,
-  confirmOrder,
   rejectOrder,
   dispatchOrder,
   completeOrder,

@@ -3,24 +3,23 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../utils/sendEmail");
 
+
 /* ================= REGISTER ================= */
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
+    // Prevent self-assignment of role - always default to Staff
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const user = await User.create({
       name,
       email,
-      password: hashedPassword,
-      role
+      password,
+      role: "Staff"  // Force Staff role on self-registration
     });
 
     res.status(201).json({
@@ -60,11 +59,18 @@ exports.login = async (req, res) => {
     await user.save();
 
     // Send OTP to email
-    await sendEmail(
-      user.email,
-      "Your Login OTP - Smart Inventory",
-      `Your OTP is ${otp}. It expires in 5 minutes.`
-    );
+    try {
+      await sendEmail(
+        user.email,
+        "Your Login OTP - Smart Inventory",
+        `Your OTP is ${otp}. It expires in 5 minutes.`
+      );
+      console.log(`[OTP LOG] OTP successfully emailed to ${user.email}`);
+    } catch (emailError) {
+      console.warn(`[OTP LOG] Email sending failed: ${emailError.message}`);
+    }
+    // Always log to console for development/test visibility
+    // OTP logged for dev only - do not log in production
 
     res.json({
       success: true,
