@@ -73,13 +73,13 @@ const Products = () => {
             <h2 className="text-2xl font-bold text-gray-800">Products</h2>
             <p className="text-sm text-gray-400 mt-1">{products.length} total products</p>
           </div>
-          <button
+          {/* <button
             onClick={() => navigate("/add-product")}
             className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl hover:bg-sidebar-light transition text-sm font-medium"
           >
             <Plus size={16} />
             Create Product
-          </button>
+          </button> */}
         </div>
 
         {/* Filters */}

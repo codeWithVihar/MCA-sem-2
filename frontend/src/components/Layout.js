@@ -79,7 +79,7 @@ const Layout = ({ children }) => {
           {
             title: "Management",
             items: [
-              { label: "Staff", path: "/staff", icon: <Users size={20} /> },
+              // { label: "Staff", path: "/staff", icon: <Users size={20} /> },
               { label: "Suppliers", path: "/suppliers", icon: <Truck size={20} /> },
               { label: "Audit Logs", path: "/audit", icon: <ClipboardList size={20} /> },
             ],

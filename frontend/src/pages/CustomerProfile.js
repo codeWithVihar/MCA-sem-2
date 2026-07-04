@@ -223,13 +223,13 @@ const CustomerProfile = () => {
                   {/* ACTION */}
                   {order.sale && (
                     <div className="mt-8 flex justify-end">
-                      <button
+                      {/* <button
                         onClick={() => window.open(`/invoice/${order.sale}`, "_blank")}
                         className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors text-sm font-semibold shadow-sm"
                       >
                         <Receipt size={16} />
                         View Invoice
-                      </button>
+                      </button> */}
                     </div>
                   )}
                 </div>

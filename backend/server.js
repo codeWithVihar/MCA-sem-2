@@ -43,7 +43,10 @@ io.on("connection", (socket) => {
 app.use(cors());
 
 // Security
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false
+}));
 
 // Compression
 app.use(compression());
